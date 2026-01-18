@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite Lab v7.7 - Fix Edition</title>
+    <title>Elite Lab v7.6 - Modular System</title>
     
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,62 +12,124 @@
         :root { 
             --bg-body: #05070a; --bg-card: #0f1216; --accent: #00a8ff;
             --text-high: #ffffff; --border: #1e252b; --board-size: 520px;
+            --c-brilliant: #26c2a3; --c-great: #5c8bb0; --c-book: #d5a47d; --c-blunder: #fa412d; --c-mistake: #ffcc00;
         }
 
-        html, body { background: var(--bg-body); color: var(--text-high); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
-        .app-container { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 400px; padding: 15px; gap: 20px; box-sizing: border-box; }
-        @media (max-width: 950px) { .app-container { grid-template-columns: 1fr; overflow-y: auto; height: auto; } }
+        html, body { background: var(--bg-body); color: var(--text-high); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; position: fixed; }
+        .app-container { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 450px; padding: 15px; gap: 20px; box-sizing: border-box; overflow: hidden; }
+        @media (max-width: 950px) { .app-container { grid-template-columns: 1fr; overflow-y: auto; position: relative; } html, body { position: relative; overflow: auto; height: auto; } }
 
-        .board-frame { width: 100%; max-width: 450px; margin: 0 auto; position: relative; }
-        #chessBoard { border: 4px solid var(--border); border-radius: 8px; }
+        .board-frame { width: 100%; max-width: var(--board-size); position: relative; margin: 0 auto; touch-action: none; user-select: none; }
+        #chessBoard { border: 4px solid var(--border); border-radius: 8px; margin: 10px 0; }
+        #glyph-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+        .glyph-badge { position: absolute; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; color: white; border: 2px solid #000; transform: translate(32px, -6px); }
 
-        .analysis-section { background: var(--bg-card); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); }
-        #comment-display { padding: 15px; background: #12151a; color: var(--accent); font-size: 14px; border-left: 4px solid var(--accent); min-height: 50px; }
-        #notation-engine { flex-grow: 1; padding: 20px; overflow-y: auto; background: #080a0d; line-height: 2.5; font-size: 15px; }
+        .player-tag { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; font-weight: 700; font-size: 16px; }
+        .elo-badge { background: rgba(0, 168, 255, 0.1); color: var(--accent); padding: 3px 12px; border-radius: 6px; font-family: 'Fira Code'; font-size: 13px; border: 1px solid rgba(0, 168, 255, 0.2); margin-left: 20px; }
+
+        .analysis-section { background: var(--bg-card); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); height: 100%; }
+        #comment-display { padding: 15px; min-height: 45px; background: #12151a; color: var(--accent); font-size: 14px; border-bottom: 1px solid var(--border); border-left: 4px solid var(--accent); white-space: pre-wrap; }
+        #notation-engine { flex-grow: 1; padding: 20px; overflow-y: auto; background: #080a0d; line-height: 2.3; }
+        .m-link { padding: 1px 5px; cursor: pointer; border-radius: 4px; color: #8892b0; display: inline-block; }
+        .m-active { background: var(--accent) !important; color: #000 !important; font-weight: 700; }
+        .comm-inline { display: block; font-size: 12px; color: #64748b; font-style: italic; margin: 2px 0 6px 15px; border-left: 2px solid #1e252b; padding-left: 8px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--bg-card); padding: 25px; border-radius: 15px; width: 90%; max-width: 480px; border: 1px solid var(--border); position: relative; }
+        .close-modal { position: absolute; top: 12px; right: 12px; background: #fa412d; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
         
-        .m-link { color: #8892b0; cursor: pointer; padding: 2px 5px; border-radius: 4px; }
-        .m-active { background: var(--accent); color: #000; font-weight: bold; }
-        .comm-inline { display: block; font-size: 12px; color: #64748b; font-style: italic; padding-left: 10px; border-left: 2px solid #1e252b; margin: 5px 0; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; z-index: 9999; align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-card); padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; }
-        .input-pro { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 8px; margin-bottom: 12px; }
-        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
-        .btn-main { background: var(--accent); color: #000; width: 100%; padding: 15px; }
+        .input-pro { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box; }
+        .btn-nav { padding: 18px; background: #161b22; color: #fff; border: 1px solid var(--border); border-radius: 8px; font-size: 22px; cursor: pointer; }
+        .glyph-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+        .btn-sign { border: 1px solid transparent; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; height: 38px; }
+        .btn-sign.active { border-color: white; transform: scale(1.05); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div class="board-section">
-            <div id="match-result" style="text-align:center; color:var(--accent); font-weight:900; margin-bottom:10px">ANALIZANDO PARTIDA</div>
-            <div class="board-frame">
+            <div class="player-tag" id="p-top"></div>
+            <div id="match-result" style="text-align:center; color:var(--accent); font-weight:900; letter-spacing:4px; margin:5px 0">*</div>
+            <div class="board-frame" id="board-container">
                 <div id="chessBoard"></div>
+                <div id="glyph-layer"></div>
             </div>
+            <div class="player-tag" id="p-bot"></div>
             
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:15px">
-                <button style="padding:15px; background:#161b22; color:#fff;" onclick="treeNav('root')">«</button>
-                <button style="padding:15px; background:#161b22; color:#fff;" onclick="treeNav('prev')">‹</button>
-                <button style="padding:15px; background:#161b22; color:#fff;" onclick="treeNav('next')">›</button>
-                <button style="padding:15px; background:#161b22; color:#fff;" onclick="treeNav('end')">»</button>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:10px">
+                <button class="btn-nav" onclick="treeNav('root')">«</button>
+                <button class="btn-nav" onclick="treeNav('prev')">‹</button>
+                <button class="btn-nav" onclick="treeNav('next')">›</button>
+                <button class="btn-nav" onclick="treeNav('end')">»</button>
             </div>
 
-            <button onclick="$('#modal-import').show()" style="width:100%; margin-top:15px; padding:15px; background:#161b22; color:var(--accent); border:1px solid var(--border)">IMPORTAR PGN</button>
+            <div id="branch-selector" style="display:none; margin-top:10px; padding:12px; background:rgba(0,168,255,0.05); border:1px dashed var(--accent); border-radius:10px;">
+                <div id="branch-buttons" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap:8px;"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
+                <button onclick="$('#modal-import').show()" style="padding:15px; background:#161b22; color:var(--accent); font-weight:bold; border:1px solid var(--border); border-radius:10px; cursor:pointer;">IMPORTAR PGN</button>
+                <button onclick="exportAndCopy()" style="padding:15px; background:#161b22; color:#fff; font-weight:bold; border:1px solid var(--border); border-radius:10px; cursor:pointer;">EXPORTAR / COPIAR</button>
+            </div>
+            <button onclick="toggleSecret(true)" style="width:100%; margin-top:10px; padding:15px; background:var(--accent); color:#000; font-weight:900; border:none; border-radius:10px; cursor:pointer;">AJUSTES ⚙️</button>
         </div>
 
         <div class="analysis-section">
-            <div id="comment-display">Carga un PGN para empezar...</div>
+            <div id="comment-display"></div>
             <div id="notation-engine"></div>
+            <button onclick="openNoteModal()" style="padding:20px; background:#161b22; color:var(--accent); border:none; font-weight:bold; cursor:pointer; border-top:1px solid var(--border)">SIGNOS Y COMENTARIOS 📝</button>
         </div>
     </div>
 
     <div id="modal-import" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="color:var(--accent)">Pegar PGN</h3>
-            <textarea id="import-area" class="input-pro" style="height:200px" placeholder="Pega aquí el PGN de Lichess o Chess.com..."></textarea>
-            <button class="btn-main" onclick="processImport()">CARGAR</button>
-            <button onclick="$('.modal-overlay').hide()" style="width:100%; background:none; color:#555; margin-top:10px">Cancelar</button>
+            <button class="close-modal" onclick="$('.modal-overlay').hide()">X</button>
+            <h3 style="color:var(--accent); margin-top:0">Importar PGN</h3>
+            <textarea id="import-area" class="input-pro" style="height:250px; font-size:11px" placeholder="Pega el PGN aquí..."></textarea>
+            <button onclick="processImport()" style="width:100%; padding:15px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:bold">CARGAR PARTIDA</button>
         </div>
+    </div>
+
+    <div id="modal-edit" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="$('.modal-overlay').hide()">X</button>
+            <h3 style="color:var(--accent); margin-top:0">Datos de la Partida</h3>
+            <input type="text" id="in-w" class="input-pro" placeholder="Nombre Blancas">
+            <input type="text" id="in-we" class="input-pro" placeholder="ELO Blancas">
+            <input type="text" id="in-b" class="input-pro" placeholder="Nombre Negras">
+            <input type="text" id="in-be" class="input-pro" placeholder="ELO Negras">
+            <select id="in-res" class="input-pro">
+                <option value="*">*</option><option value="1-0">1-0</option><option value="0-1">0-1</option><option value="1/2-1/2">1/2-1/2</option>
+            </select>
+            <button onclick="saveMatchData()" style="width:100%; padding:15px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:bold">GUARDAR</button>
+        </div>
+    </div>
+
+    <div id="modal-note" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="$('.modal-overlay').hide()">X</button>
+            <h3 style="margin-top:0; color:var(--accent)">Análisis</h3>
+            <div class="glyph-grid">
+                <button class="btn-sign" style="background:var(--c-brilliant)" onclick="selectSign('!!', this)">!!</button>
+                <button class="btn-sign" style="background:var(--c-great)" onclick="selectSign('!', this)">!</button>
+                <button class="btn-sign" style="background:var(--c-book)" onclick="selectSign('📖', this)">📖</button>
+                <button class="btn-sign" style="background:var(--c-mistake)" onclick="selectSign('?', this)">?</button>
+                <button class="btn-sign" style="background:var(--c-blunder)" onclick="selectSign('??', this)">??</button>
+                <button class="btn-sign" style="background:#444" onclick="selectSign('', this)">Ø</button>
+            </div>
+            <textarea id="note-input" class="input-pro" style="height:100px" placeholder="Comentario..."></textarea>
+            <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px">GUARDAR</button>
+            <button id="delete-btn" onclick="deleteCurrentNode()" style="width:100%; padding:10px; background:none; color:var(--c-blunder); border:1px solid var(--c-blunder); border-radius:8px; font-size:12px; font-weight:bold;">🗑️ BORRAR JUGADA</button>
+        </div>
+    </div>
+
+    <div id="secret-menu" style="position:fixed; right:-320px; top:0; width:280px; height:100%; background:var(--bg-card); z-index:10000; transition:0.3s; padding:20px; border-left:4px solid var(--accent); visibility:hidden;">
+        <h2 style="color:var(--accent)">Ajustes</h2>
+        <button onclick="openEditModal()" style="width:100%; padding:12px; background:#161b22; border:1px solid var(--border); border-radius:8px; color:#fff; margin-bottom:10px; text-align:left">📝 Editar Jugadores</button>
+        <button onclick="board.flip(); sync(); toggleSecret(false)" style="width:100%; padding:12px; background:#161b22; border:1px solid var(--border); border-radius:8px; color:#fff; margin-bottom:10px; text-align:left">🔄 Girar Tablero</button>
+        <button onclick="fullReset()" style="width:100%; padding:12px; background:none; color:var(--c-blunder); border:1px solid var(--c-blunder); border-radius:8px; margin-top:40px">🗑️ Reset Todo</button>
+        <button onclick="toggleSecret(false)" style="width:100%; margin-top:20px; color:#555; background:none; border:none">CERRAR</button>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -75,112 +137,188 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <script>
-        let game = new Chess(), board = null;
-        let tree = { root: { id: 'root', fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', san: '', comment: '', parent: null, children: [] } };
+        // --- CONFIGURACIÓN DE PIEZAS BASE64 (Blindaje para Honor) ---
+        function pieceTheme(piece) {
+            return 'https://chessboardjs.com/img/chesspieces/wikipedia/' + piece + '.png';
+        }
+
+        const GLYPH_COLORS = { '!!': '#26c2a3', '!': '#5c8bb0', '📖': '#d5a47d', '??': '#fa412d', '?': '#ffcc00', '=': '#8892b0', '±': '#fff', '∓': '#fff', '+-': '#fff', '-+': '#fff', '∞': '#fff' };
+        let game = new Chess(), board = null, tempSign = "";
+        let match = { w: 'Blancas', we: '?', b: 'Negras', be: '?', res: '*' };
+        let tree = { root: { id: 'root', fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', san: '', sign: '', comment: '', parent: null, children: [] } };
         let cursor = tree.root;
 
         $(document).ready(() => { 
-            // FIX PIEZAS: Usar tema de Wikipedia oficial
-            board = ChessBoard('chessBoard', {
-                draggable: true,
-                position: 'start',
-                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-                onDrop: (s, t) => {
-                    const move = game.move({from: s, to: t, promotion: 'q'});
-                    if (!move) return 'snapback';
-                    game.undo();
-                    // Lógica de añadir nodo manual
-                    let node = { id: 'n'+Math.random(), fen: game.fen(), san: move.san, comment: '', parent: cursor, children: [] };
-                    cursor.children.push(node);
-                    cursor = node; sync();
-                }
-            });
-            sync();
+            initBoard(); loadLab();
+            document.getElementById('board-container').addEventListener('touchmove', e => e.preventDefault(), { passive: false });
         });
 
-        // PROCESADOR DE PGN CON VARIANTES (Limpia paréntesis para no romperse)
+        function initBoard() {
+            board = ChessBoard('chessBoard', {
+                draggable: true, position: 'start', moveSpeed: 0,
+                pieceTheme: pieceTheme, 
+                onDragStart: (s, p) => { game.load(cursor.fen); },
+                onDrop: (s, t) => { 
+                    const m = game.move({from: s, to: t, promotion: 'q'});
+                    if (!m) return 'snapback';
+                    game.undo(); execMove(s, t);
+                }
+            });
+        }
+
+        function execMove(s, t) {
+            game.load(cursor.fen);
+            const move = game.move({from: s, to: t, promotion: 'q'});
+            let node = cursor.children.find(c => c.san === move.san);
+            if (!node) {
+                node = { id: 'n'+Math.random().toString(36).substr(2,9), fen: game.fen(), san: move.san, lastSq: t, sign: '', comment: '', parent: cursor, children: [] };
+                cursor.children.push(node);
+            }
+            cursor = node; sync();
+        }
+
+        // --- PROCESADOR PGN (MEJORADO CON VARIANTES Y COMENTARIOS) ---
         function processImport() {
             let pgn = $('#import-area').val();
             if (!pgn) return;
 
-            // 1. Limpiar variantes (Todo lo que esté entre paréntesis)
-            // Esto evita que el motor se pierda en las ramas secundarias
-            pgn = pgn.replace(/\([^()]*\)/g, ''); 
-            
-            // 2. Extraer comentarios y movimientos
-            const moveRegex = /([NBKRQ]?[a-h]?[1-8]?x?[a-h][1-8][+#]?|O-O-O|O-O)(\s+\{[^}]+\})?/g;
-            let tempGame = new Chess();
-            tree.root.children = [];
-            let current = tree.root;
-            let match;
+            try {
+                // Extraer Metadatos
+                match.w = pgn.match(/\[White\s+"(.*?)"\]/)?.[1] || "Blancas";
+                match.we = pgn.match(/\[WhiteElo\s+"(.*?)"\]/)?.[1] || "?";
+                match.b = pgn.match(/\[Black\s+"(.*?)"\]/)?.[1] || "Negras";
+                match.be = pgn.match(/\[BlackElo\s+"(.*?)"\]/)?.[1] || "?";
+                match.res = pgn.match(/\[Result\s+"(.*?)"\]/)?.[1] || "*";
 
-            while ((match = moveRegex.exec(pgn)) !== null) {
-                const san = match[1];
-                const comment = match[2] ? match[2].replace(/[\{\}]/g, '').trim() : "";
-                
-                const validMove = tempGame.move(san);
-                if (validMove) {
-                    let node = {
-                        id: 'n' + Math.random(),
-                        fen: tempGame.fen(),
-                        san: validMove.san,
-                        comment: comment,
-                        parent: current,
-                        children: []
-                    };
-                    current.children.push(node);
-                    current = node;
+                // Limpiar Variantes (Ignorarlas para evitar rotura)
+                pgn = pgn.replace(/\([^()]*\)/g, '');
+
+                const moveRegex = /([NBKRQ]?[a-h]?[1-8]?x?[a-h][1-8][+#]?|O-O-O|O-O)(\s+\{[^}]+\})?/g;
+                let tempGame = new Chess();
+                tree.root.children = [];
+                let current = tree.root;
+                let matchMove;
+
+                while ((matchMove = moveRegex.exec(pgn)) !== null) {
+                    const san = matchMove[1];
+                    const comment = matchMove[2] ? matchMove[2].replace(/[\{\}]/g, '').trim() : "";
+                    const move = tempGame.move(san);
+                    if (move) {
+                        let node = { id: 'n'+Math.random().toString(36).substr(2,9), fen: tempGame.fen(), san: move.san, lastSq: move.to, sign: '', comment: comment, parent: current, children: [] };
+                        current.children.push(node);
+                        current = node;
+                    }
                 }
-            }
-
-            cursor = tree.root;
-            sync();
-            $('.modal-overlay').hide();
+                cursor = tree.root; sync(); $('.modal-overlay').hide();
+            } catch (e) { alert("Error en el formato PGN"); }
         }
 
         function sync() {
-            game.load(cursor.fen);
-            board.position(game.fen());
-            $('#comment-display').html(cursor.comment ? `<b>ANÁLISIS:</b> ${cursor.comment}` : "<i>Sin comentarios en esta posición</i>");
-            renderNotation();
+            game.load(cursor.fen); board.position(game.fen(), false);
+            const isF = board.orientation() === 'black';
+            const top = isF ? {n:match.w, e:match.we} : {n:match.b, e:match.be};
+            const bot = isF ? {n:match.b, e:match.be} : {n:match.w, e:match.we};
+            $('#p-top').html(`<span>${top.n}</span><span class="elo-badge">${top.e}</span>`);
+            $('#p-bot').html(`<span>${bot.n}</span><span class="elo-badge">${bot.e}</span>`);
+            $('#match-result').text(match.res);
+            $('#comment-display').html(cursor.comment ? `<b>ANÁLISIS:</b> ${cursor.comment}` : "<i>Sin comentarios</i>");
+            renderNotation(); renderGlyphs(); saveLab();
         }
 
         function renderNotation() {
-            const html = buildNotationHTML(tree.root.children);
-            $('#notation-engine').html(html);
+            const eng = document.getElementById('notation-engine');
+            eng.innerHTML = buildTreeUI(tree.root.children);
+            const act = eng.querySelector('.m-active');
+            if (act) eng.scrollTo({top: act.offsetTop - 60, behavior: 'smooth'});
         }
 
-        function buildNotationHTML(nodes) {
-            let h = "";
-            nodes.forEach(n => {
-                const activeClass = n.id === cursor.id ? 'm-active' : '';
-                const commentHtml = n.comment ? `<span class="comm-inline">${n.comment}</span>` : '';
-                h += `<span class="m-link ${activeClass}" onclick="jump('${n.id}')">${n.san}</span>${commentHtml} `;
-                if (n.children.length > 0) h += buildNotationHTML([n.children[0]]);
+        function buildTreeUI(nodes, isV = false) {
+            let h = isV ? '<span style="color:#444"> ( ' : '';
+            nodes.forEach((n, i) => {
+                const d = getDepth(n), num = Math.ceil(d/2);
+                let lbl = (d % 2 !== 0) ? `<b>${num}.</b> ` : (i === 0 ? `<b>${num}...</b> ` : '');
+                const sLabel = n.sign ? `<small style="color:${GLYPH_COLORS[n.sign] || '#fff'}">${n.sign}</small>` : '';
+                const cLabel = n.comment ? `<span class="comm-inline">${n.comment}</span>` : '';
+                h += ` <span class="m-link ${n.id===cursor.id?'m-active':''}" onclick="jump('${n.id}')">${lbl}${n.san}${sLabel}</span>${cLabel}`;
+                if (n.children.length > 0) {
+                    h += buildTreeUI([n.children[0]]);
+                    for(let j=1; j<n.children.length; j++) h += buildTreeUI([n.children[j]], true);
+                }
             });
-            return h;
+            return isV ? h + ' ) </span>' : h;
         }
 
-        function jump(id) {
-            const node = findNode(tree.root, id);
-            if (node) { cursor = node; sync(); }
-        }
-
-        function findNode(node, id) {
-            if (node.id === id) return node;
-            for (let c of node.children) {
-                let res = findNode(c, id);
-                if (res) return res;
+        function renderGlyphs() {
+            const layer = $('#glyph-layer').empty();
+            if (cursor.sign && cursor.lastSq && ['!!','!','?','??','📖'].includes(cursor.sign)) {
+                const sq = $(`.square-${cursor.lastSq}`);
+                if (sq.length) {
+                    const r = sq[0].getBoundingClientRect(), br = $('#chessBoard')[0].getBoundingClientRect();
+                    $(`<div class="glyph-badge" style="background:${GLYPH_COLORS[cursor.sign]}; left:${r.left-br.left}px; top:${r.top-br.top}px">${cursor.sign}</div>`).appendTo(layer);
+                }
             }
-            return null;
         }
 
-        function treeNav(dir) {
-            if (dir === 'root') jump('root');
-            if (dir === 'prev' && cursor.parent) jump(cursor.parent.id);
-            if (dir === 'next' && cursor.children.length > 0) jump(cursor.children[0].id);
-            if (dir === 'end') { let t = cursor; while(t.children.length > 0) t = t.children[0]; jump(t.id); }
+        function jump(id) { const found = findInTree(tree.root, id); if (found) { cursor = found; sync(); } }
+        function findInTree(node, id) { if (node.id === id) return node; for (let child of node.children) { const res = findInTree(child, id); if (res) return res; } return null; }
+        function getDepth(n) { let d=0, t=n; while(t.parent){ d++; t=t.parent; } return d; }
+
+        function treeNav(action) {
+            $('#branch-selector').hide();
+            if (action === 'root') jump('root');
+            if (action === 'prev' && cursor.parent) jump(cursor.parent.id);
+            if (action === 'next') {
+                if (cursor.children.length === 1) jump(cursor.children[0].id);
+                else if (cursor.children.length > 1) {
+                    const cont = $('#branch-buttons').empty();
+                    cursor.children.forEach(c => {
+                        $(`<button style="padding:10px; background:#000; color:var(--accent); border:1px solid var(--accent); border-radius:6px; cursor:pointer;">${c.san}</button>`)
+                        .on('click', () => { $('#branch-selector').hide(); jump(c.id); }).appendTo(cont);
+                    });
+                    $('#branch-selector').show();
+                }
+            }
+            if (action === 'end') { let t = cursor; while(t.children.length > 0) t = t.children[0]; jump(t.id); }
         }
+
+        function exportAndCopy() {
+            let p = `[White "${match.w}"]\n[WhiteElo "${match.we}"]\n[Black "${match.b}"]\n[BlackElo "${match.be}"]\n[Result "${match.res}"]\n\n`;
+            p += generatePGN(tree.root.children);
+            navigator.clipboard.writeText(p).then(() => alert("✅ Copiado al portapapeles"));
+        }
+
+        function generatePGN(nodes, isV = false) {
+            let t = "";
+            nodes.forEach((n, i) => {
+                const d = getDepth(n), num = Math.ceil(d/2);
+                if (d % 2 !== 0) t += `${num}. `; else if (i === 0 && isV) t += `${num}... `;
+                t += n.san + (n.sign || "") + " ";
+                if (n.comment) t += `{${n.comment}} `;
+                if (n.children.length > 0) {
+                    t += generatePGN([n.children[0]]);
+                    for(let j=1; j<n.children.length; j++) t += "(" + generatePGN([n.children[j]], true).trim() + ") ";
+                }
+            });
+            return t;
+        }
+
+        function saveLab() { localStorage.setItem('lab76_match', JSON.stringify(match)); localStorage.setItem('lab76_tree', JSON.stringify(tree.root, (k,v) => k==='parent'?undefined:v)); localStorage.setItem('lab76_cursor', cursor.id); }
+        function loadLab() {
+            const m = localStorage.getItem('lab76_match'), t = localStorage.getItem('lab76_tree'), c = localStorage.getItem('lab76_cursor');
+            if(m) match = JSON.parse(m);
+            if(t) { tree.root = rebuildTree(JSON.parse(t), null); jump(c || 'root'); } else sync();
+        }
+        function rebuildTree(n, p) { n.parent = p; if(n.children) n.children.forEach(c => rebuildTree(c, n)); return n; }
+        
+        // --- RESTO DE FUNCIONES DE INTERFAZ ---
+        function openNoteModal() { tempSign = cursor.sign || ""; $('#note-input').val(cursor.comment || ""); $('#modal-note').show(); }
+        function selectSign(s, btn) { tempSign = s; $('.btn-sign').removeClass('active'); $(btn).addClass('active'); }
+        function saveNote() { cursor.sign = tempSign; cursor.comment = $('#note-input').val(); $('.modal-overlay').hide(); sync(); }
+        function deleteCurrentNode() { if (cursor.id === 'root') return; if (confirm("¿Borrar?")) { const p = cursor.parent; p.children = p.children.filter(c => c.id !== cursor.id); cursor = p; sync(); $('.modal-overlay').hide(); } }
+        function openEditModal() { $('#in-w').val(match.w); $('#in-we').val(match.we); $('#in-b').val(match.b); $('#in-be').val(match.be); $('#in-res').val(match.res); $('#modal-edit').show(); toggleSecret(false); }
+        function saveMatchData() { match.w = $('#in-w').val(); match.we = $('#in-we').val(); match.b = $('#in-b').val(); match.be = $('#in-be').val(); match.res = $('#in-res').val(); $('.modal-overlay').hide(); sync(); }
+        function toggleSecret(o) { $('#secret-menu').css({'visibility': o?'visible':'hidden', 'transform': o?'translateX(-320px)':'none'}); }
+        function fullReset() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
