@@ -1,0 +1,12 @@
+@layer base {
+  :root {
+    --background: 0 0% 10%;
+    --foreground: 355 100% 85%;
+    --card: 0 0% 12%;
+    --card-foreground: 355 100% 85%;
+    --primary: 355 100% 85%;
+    --primary-foreground: 0 0% 10%;
+    --border: 355 50% 30%;
+    --ring: 355 100% 85%;
+  }
+}
