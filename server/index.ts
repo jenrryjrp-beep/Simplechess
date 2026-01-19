@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { createServer } from 'http';
 import { fileURLToPath } from 'url';
@@ -17,5 +18,5 @@ app.get('*', (req, res) => {
 
 const port = process.env.PORT || 5000;
 server.listen(port, () => {
-  console.log(`Servidor corriendo en puerto ${port}`);
+  console.log(`Server running on port ${port}`);
 });
