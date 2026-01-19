@@ -20,7 +20,7 @@
     "wouter": "^2.0.0",
     "chessground": "^8.0.0",
     "chess.js": "^0.13.0",
-    "lucide-react": "^0.0.0"
+    "lucide-react": "0.344.0"
   },
   "devDependencies": {
     "tailwindcss": "^3.0.0",
